@@ -1,12 +1,23 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
+
+	"github.com/fatih/color"
 )
+
+var langStore = map[string]int64{}
+var totalSize int64 = 0
+
+type file struct {
+	path string
+	name string
+	size int64
+}
 
 func getLang(filename string) string {
 	langMap := map[string]string{
@@ -167,6 +178,7 @@ func getLang(filename string) string {
 		"pyx":                 "Cython",
 		"pxd":                 "Cython",
 		"pxi":                 "Cython",
+		"pug":                 "Pug",
 		"d":                   "Makefile",
 		"di":                  "D",
 		"d-objdump":           "D-ObjDump",
@@ -933,13 +945,48 @@ func reverse(s interface{}) {
 	}
 }
 
-func parseTrackedFile(path string, name string, size int64, langSizes map[string]int64) map[string]int64 {
-	langName := getLang(name)
-	if langName != "" {
-		langSizes[langName] += size
+func trackFile(langName string, size int64) {
+	langStore[langName] += size
+	totalSize += size
+}
+
+/* func addLangPercent() {
+	for k, v := range langStore {
+		percentage := uint8((v * 100) / totalSize)
+		fmt.Println(percentage)
+		if percentage >= 1 {
+			langStorePercent[k] = percentage
+			totalSizePercent += percentage
+		}
 	}
-	langSizes["uwu"] = langSizes["uwu"] + 100
-	return langSizes
+} */
+
+func forFiles(f file) {
+	fileLanguage := getLang(f.name)
+	if fileLanguage != "" {
+		// fmt.Println(f.name, "\t\t", fileLanguage, f.size)
+		trackFile(fileLanguage, f.size)
+	}
+	// addLangPercent()
+}
+
+func visualizeBars() {
+	c := []func(string, ...interface{}){
+		color.Red,
+		color.Blue,
+		color.Green,
+		color.Cyan,
+		color.Yellow,
+		color.Magenta,
+	}
+	i := 0
+	for k, v := range langStore {
+		fiftyDenom := uint8((v * 50) / totalSize)
+		if fiftyDenom >= 1 {
+			c[i](k + "  " + strconv.Itoa(int(fiftyDenom)))
+			i++
+		}
+	}
 }
 
 func main() {
@@ -948,12 +995,13 @@ func main() {
 			if err != nil {
 				return err
 			}
-			langSizes := map[string]int64{}
-			langSizes = parseTrackedFile(path, info.Name(), info.Size(), langSizes)
-			fmt.Println(langSizes)
+			// perform analysis on files, all values stored in langStore
+			forFiles(file{path: path, name: info.Name(), size: info.Size()})
 			return nil
 		})
 	if err != nil {
 		log.Println(err)
 	}
+	// visualize results
+	visualizeBars()
 }
