@@ -1,35 +1,25 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strconv"
-
-	"github.com/fatih/color"
+	"strings"
 )
 
 var langStore = map[string]int64{}
 var totalSize int64 = 0
 
 type file struct {
-	path string
 	name string
 	size int64
 }
 
 func getLang(filename string) string {
 	langMap := map[string]string{
-		"1":                   "Groff",
-		"2":                   "Groff",
-		"3":                   "Groff",
-		"4":                   "Groff",
-		"5":                   "Groff",
-		"6":                   "Groff",
-		"7":                   "Groff",
-		"8":                   "Groff",
-		"9":                   "Groff",
 		"abap":                "ABAP",
 		"asc":                 "Public Key",
 		"ash":                 "AGS Script",
@@ -96,7 +86,7 @@ func getLang(filename string) string {
 		"h":                   "Objective-C",
 		"idc":                 "C",
 		"w":                   "C",
-		"cs":                  "Smalltalk",
+		"cs":                  "C#",
 		"cake":                "CoffeeScript",
 		"cshtml":              "C#",
 		"csx":                 "C#",
@@ -922,6 +912,7 @@ func getLang(filename string) string {
 		"wisp":                "wisp",
 		"prg":                 "xBase",
 		"prw":                 "xBase",
+		"svelte":              "svelte",
 	}
 	fnRunes := []rune(filename)
 	reverse(fnRunes)
@@ -950,43 +941,55 @@ func trackFile(langName string, size int64) {
 	totalSize += size
 }
 
-/* func addLangPercent() {
-	for k, v := range langStore {
-		percentage := uint8((v * 100) / totalSize)
-		fmt.Println(percentage)
-		if percentage >= 1 {
-			langStorePercent[k] = percentage
-			totalSizePercent += percentage
-		}
-	}
-} */
-
 func forFiles(f file) {
 	fileLanguage := getLang(f.name)
 	if fileLanguage != "" {
-		// fmt.Println(f.name, "\t\t", fileLanguage, f.size)
 		trackFile(fileLanguage, f.size)
 	}
-	// addLangPercent()
 }
 
 func visualizeBars() {
-	c := []func(string, ...interface{}){
-		color.Red,
-		color.Blue,
-		color.Green,
-		color.Cyan,
-		color.Yellow,
-		color.Magenta,
+	color := []string{
+		"\033[0;31m",
+		"\033[0;32m",
+		"\033[0;33m",
+		"\033[0;34m",
+		"\033[0;35m",
+		"\033[0;36m",
+		"\033[0;37m",
 	}
+	colorReset := "\033[0m"
+	colorBlack := "\033[0;30m"
 	i := 0
-	for k, v := range langStore {
-		fiftyDenom := uint8((v * 50) / totalSize)
-		if fiftyDenom >= 1 {
-			c[i](k + "  " + strconv.Itoa(int(fiftyDenom)))
+	barView := []string{}
+	summary := []string{}
+	for langName, v := range langStore {
+		fiftyNumerator := uint8((v * 50) / totalSize)
+		if fiftyNumerator >= 1 {
+			langSummary := color[i] + "\n" + langName + " > " + strconv.Itoa(int(fiftyNumerator)*2) + "%" + " (size: " + strconv.Itoa(int(v)) + ")"
+			barView = append(barView, color[i]+strings.Repeat("█", int(fiftyNumerator))+"▌")
+			summary = append(summary, langSummary)
 			i++
 		}
 	}
+	reverse(barView)
+	reverse(summary)
+	barView = append(barView, colorReset)
+	barViewString := strings.Join(barView[:], "")
+	summaryString := strings.Join(summary[:], "")
+
+	// get parent directory name
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	projectName := filepath.Base(wd)
+	headerFmt := "\n" + projectName + " " + colorBlack + wd + colorReset + "\n"
+
+	// print out all the formatted data
+	fmt.Println(headerFmt)
+	fmt.Println(barViewString)
+	fmt.Println(summaryString + "\n")
 }
 
 func main() {
@@ -996,7 +999,7 @@ func main() {
 				return err
 			}
 			// perform analysis on files, all values stored in langStore
-			forFiles(file{path: path, name: info.Name(), size: info.Size()})
+			forFiles(file{name: info.Name(), size: info.Size()})
 			return nil
 		})
 	if err != nil {
