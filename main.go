@@ -936,15 +936,34 @@ func reverse(s interface{}) {
 	}
 }
 
-func trackFile(langName string, size int64) {
-	langStore[langName] += size
-	totalSize += size
+func trackFile(langName string, f file, detailed bool) {
+	langStore[langName] += f.size
+	totalSize += f.size
+	if detailed {
+		sizeStr := strconv.Itoa(int(f.size))
+		fmt.Printf("\033[0;34m" + langName + "\033[0m" + strings.Repeat(" ", (30-len(langName))))
+		fmt.Printf(f.name)
+		fmt.Printf("\033[0;32m" + " (" + sizeStr + ")" + "\033[0m")
+		fmt.Println()
+	}
 }
 
-func forFiles(f file) {
+func forFiles(f file, detailed bool) {
 	fileLanguage := getLang(f.name)
 	if fileLanguage != "" {
-		trackFile(fileLanguage, f.size)
+		trackFile(fileLanguage, f, detailed)
+	}
+}
+
+func visualizeStore() {
+	fmt.Println("\nTOTAL:")
+	for langName, size := range langStore {
+		percentage := strconv.Itoa(int((size*100)/totalSize)) + "%%"
+		langPreviewStr := "\033[0;34m" + langName + "\033[0m" + "\033[0;32m" + " (" + strconv.Itoa(int(size)) + ")" + "\033[0m"
+		fmt.Printf(langPreviewStr)
+		fmt.Printf(strings.Repeat(" ", (70 - len(langPreviewStr))))
+		fmt.Printf(percentage)
+		fmt.Println()
 	}
 }
 
@@ -966,7 +985,7 @@ func visualizeBars() {
 	for langName, v := range langStore {
 		fiftyNumerator := uint8((v * 50) / totalSize)
 		if fiftyNumerator >= 1 {
-			langSummary := color[i] + "\n" + langName + " > " + strconv.Itoa(int(fiftyNumerator)*2) + "%" + " (size: " + strconv.Itoa(int(v)) + ")"
+			langSummary := color[i] + "\n" + langName + " => " + strconv.Itoa(int(fiftyNumerator)*2) + "%" + " (size: " + strconv.Itoa(int(v)) + ")"
 			barView = append(barView, color[i]+strings.Repeat("█", int(fiftyNumerator))+"▌")
 			summary = append(summary, langSummary)
 			i++
@@ -993,18 +1012,42 @@ func visualizeBars() {
 }
 
 func main() {
-	err := filepath.Walk(".",
-		func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			// perform analysis on files, all values stored in langStore
-			forFiles(file{name: info.Name(), size: info.Size()})
-			return nil
-		})
-	if err != nil {
-		log.Println(err)
+	helped := false
+	detailed := false
+	args := os.Args
+	for i := range args {
+		switch args[i] {
+		case "--detailed", "-d":
+			detailed = true
+		case "--help", "-h":
+			helped = true
+			fmt.Println(`
+PROJECT NAME
+project name analyzes the programming languages used in the current directory and produces a GitHub-like programming language usage bar
+
+--detailed -d: Also provides file-specific information
+--help -h: Shows this help message
+			`)
+		}
 	}
-	// visualize results
-	visualizeBars()
+	if !helped {
+		err := filepath.Walk(".",
+			func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				// perform analysis on files, all values stored in langStore
+				forFiles(file{name: info.Name(), size: info.Size()}, detailed)
+				return nil
+			})
+		if err != nil {
+			log.Println(err)
+		}
+		// visualize global language store
+		if detailed {
+			visualizeStore()
+		}
+		// visualize results
+		visualizeBars()
+	}
 }
