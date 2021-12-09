@@ -1012,25 +1012,26 @@ func visualizeBars() {
 }
 
 func main() {
-	helped := false
+	help := false
 	detailed := false
 	args := os.Args
 	for i := range args {
+		// command line arguments
 		switch args[i] {
 		case "--detailed", "-d":
 			detailed = true
 		case "--help", "-h":
-			helped = true
+			help = true
 			fmt.Println(`
-PROJECT NAME
-project name analyzes the programming languages used in the current directory and produces a GitHub-like programming language usage bar
-
+barley
+barley analyzes the programming languages used in the current directory and produces a GitHub-like programming language usage bar
+COMMANDS:
 --detailed -d: Also provides file-specific information
 --help -h: Shows this help message
 			`)
 		}
 	}
-	if !helped {
+	if !help {
 		err := filepath.Walk(".",
 			func(path string, info os.FileInfo, err error) error {
 				if err != nil {
