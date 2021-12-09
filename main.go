@@ -1037,6 +1037,24 @@ COMMANDS:
 				if err != nil {
 					return err
 				}
+				switch info.Name() {
+				case ".git":
+					if info.IsDir() {
+						return filepath.SkipDir
+					}
+				case "node_modules":
+					if info.IsDir() {
+						return filepath.SkipDir
+					}
+				case "package.json":
+					if !info.IsDir() {
+						return filepath.SkipDir
+					}
+				case "package-lock.json":
+					if !info.IsDir() {
+						return filepath.SkipDir
+					}
+				}
 				if info.IsDir() && info.Name() == ".git" {
 					return filepath.SkipDir
 				}
