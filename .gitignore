@@ -1,2 +1,6 @@
 tests/
 bin/
+src/
+pkg/
+barley/
+*.pkg.tar.zst
