@@ -1,6 +1,6 @@
 # barley
 
-A cli that shows a GitHub-like language percentage bar. 
+A cli that shows a GitHub-like language usage statistics bar.
 
 barley analyses the programming languages used in a directory and creates a used languages bar right on your terminal:
 
