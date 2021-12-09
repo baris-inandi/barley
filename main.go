@@ -914,18 +914,18 @@ func getLang(filename string) string {
 		"prw":                 "xBase",
 		"svelte":              "svelte",
 	}
-	fnRunes := []rune(filename)
-	reverse(fnRunes)
-	feSlice := []rune{}
-	for i := range fnRunes {
-		currentChar := fnRunes[i]
+	filenameRunes := []rune(filename)
+	reverse(filenameRunes)
+	exensionChars := []rune{}
+	for i := range filenameRunes {
+		currentChar := filenameRunes[i]
 		if currentChar == '.' {
-			reverse(feSlice)
+			reverse(exensionChars)
 			break
 		}
-		feSlice = append(feSlice, currentChar)
+		exensionChars = append(exensionChars, currentChar)
 	}
-	return langMap[string(feSlice)]
+	return langMap[string(exensionChars)]
 }
 
 func reverse(s interface{}) {
