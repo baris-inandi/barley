@@ -1,6 +1,6 @@
 Maintainer="Barış İnandıoğlu"
 pkgname=barley
-pkgver=r11.aee6022
+pkgver=r27.ecaf0c1
 pkgrel=1
 epoch=
 pkgdesc="A cli that shows a GitHub-like language usage statistics bar."
