@@ -1037,6 +1037,9 @@ COMMANDS:
 				if err != nil {
 					return err
 				}
+				if info.IsDir() && info.Name() == ".git" {
+					return filepath.SkipDir
+				}
 				// perform analysis on files, all values stored in langStore
 				forFiles(file{name: info.Name(), size: info.Size()}, detailed)
 				return nil
