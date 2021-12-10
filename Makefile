@@ -10,6 +10,13 @@ linux:
 darwin:
 	GOOS=darwin GOARCH=amd64 go build -o barley main.go
 
+brew:
+	GOOS=darwin GOARCH=amd64 go build -o ./bin/brew/barley main.go
+	GOOS=darwin GOARCH=arm64 go build -o ./bin/brew/barley-silicon main.go
+	wait
+	tar -czf ./bin/brew/barley.tar.gz ./bin/brew/barley
+	tar -czf ./bin/brew/barley-silicon.tar.gz ./bin/brew/barley-silicon
+
 win:
 	GOOS=windows GOARCH=amd64 go build -o barley main.go
 
