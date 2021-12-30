@@ -1,4 +1,4 @@
-class Espanso < Formula
+class Barley < Formula
   desc "Cross-platform Text Expander written in Rust"
   homepage "https://github.com/baris-inandi/barley"
   url "https://github.com/baris-inandi/barley"
