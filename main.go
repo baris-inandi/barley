@@ -15,14 +15,23 @@ import (
 var langStore = map[string]int64{}
 var langMap map[string]string = loadLanguagesJSON()
 var totalSize int64 = 0
+var languageJSONPath string = getLanguageJSONPath()
 
 type file struct {
 	name string
 	size int64
 }
 
+func getLanguageJSONPath() string {
+	dirname, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return dirname + "/.config/barley/" + "languages.json"
+}
+
 func loadLanguagesJSON() map[string]string {
-	jsonFile, err := os.Open("languages.json")
+	jsonFile, err := os.Open(languageJSONPath)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -36,16 +45,16 @@ func loadLanguagesJSON() map[string]string {
 func getLang(filename string) string {
 	filenameRunes := []rune(filename)
 	reverse(filenameRunes)
-	exensionChars := []rune{}
+	extensionChars := []rune{}
 	for i := range filenameRunes {
 		currentChar := filenameRunes[i]
 		if currentChar == '.' {
-			reverse(exensionChars)
+			reverse(extensionChars)
 			break
 		}
-		exensionChars = append(exensionChars, currentChar)
+		extensionChars = append(extensionChars, currentChar)
 	}
-	return langMap[string(exensionChars)]
+	return langMap[string(extensionChars)]
 }
 
 func reverse(s interface{}) {
@@ -97,9 +106,9 @@ func visualizeBars() {
 		"\033[0;36m",
 		"\033[0;37m",
 	}
+	i := 0
 	colorReset := "\033[0m"
 	colorBlack := "\033[0;30m"
-	i := 0
 	barView := []string{}
 	summary := []string{}
 	for langName, v := range langStore {
@@ -110,9 +119,15 @@ func visualizeBars() {
 			summary = append(summary, langSummary)
 			i++
 		}
+		if i >= len(color) {
+			break
+		}
 	}
 	reverse(barView)
 	reverse(summary)
+	if len(langStore) > len(color) {
+		summary = append(summary, colorReset+"\n...")
+	}
 	barView = append(barView, colorReset)
 	barViewString := strings.Join(barView[:], "")
 	summaryString := strings.Join(summary[:], "")

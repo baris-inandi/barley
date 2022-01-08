@@ -46,5 +46,11 @@ build:
 clean:
 	rm -rf bin
 
+installjson:
+	mkdir -p ~/.config/barley
+	cp ./languages.json ~/.config/barley/languages.json
+
 install:
+	mkdir -p ~/.config/barley
+	cp ./languages.json ~/.config/barley/languages.json
 	sudo go build -o /usr/bin/barley main.go
